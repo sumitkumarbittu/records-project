@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Record Entry</title>
+
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    max-width: 600px;
+    margin: 40px auto;
+  }
+  h1 {
+    text-align: center;
+  }
+  .field {
+    margin-bottom: 14px;
+  }
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+  button {
+    padding: 10px 16px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  pre {
+    background: #111;
+    color: #0f0;
+    padding: 10px;
+    margin-top: 20px;
+    white-space: pre-wrap;
+  }
+</style>
+</head>
+
+<body>
+
+<h1>📄 Record Entry</h1>
+
+<form id="recordForm" enctype="multipart/form-data">
+  <div id="fields"></div>
+  <button type="submit">Save Record</button>
+</form>
+
+<pre id="output"></pre>
+
+<script>
+/* ==========================
+   CONFIG
+========================== */
+const API_BASE = "https://YOUR-BACKEND-URL.com";
+// Example:
+// const API_BASE = "http://localhost:8000";
+
+/* ==========================
+   DOM
+========================== */
+const form = document.getElementById("recordForm");
+const fieldsDiv = document.getElementById("fields");
+const output = document.getElementById("output");
+
+/* ==========================
+   Load Schema
+========================== */
+async function loadSchema() {
+  try {
+    const res = await fetch(API_BASE + "/schema");
+    const data = await res.json();
+    buildForm(data.schema);
+  } catch {
+    output.textContent = "❌ Failed to load schema";
+  }
+}
+
+function buildForm(schema) {
+  fieldsDiv.innerHTML = "";
+
+  for (const name in schema) {
+    const field = schema[name];
+
+    const wrap = document.createElement("div");
+    wrap.className = "field";
+
+    const label = document.createElement("label");
+    label.textContent = name + (field.required ? " *" : "");
+
+    let input = document.createElement("input");
+    input.name = name;
+
+    if (field.type === "photo" || field.type === "file") {
+      input.type = "file";
+    } else if (field.type === "number") {
+      input.type = "number";
+      input.step = "1";
+    } else if (field.type === "amount") {
+      input.type = "number";
+      input.step = "0.01";
+    } else if (field.type === "date") {
+      input.type = "date";
+    } else if (field.type === "datetime") {
+      input.type = "datetime-local";
+    } else {
+      input.type = "text";
+    }
+
+    if (field.required) input.required = true;
+
+    wrap.appendChild(label);
+    wrap.appendChild(input);
+    fieldsDiv.appendChild(wrap);
+  }
+}
+
+/* ==========================
+   Submit
+========================== */
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  output.textContent = "⏳ Saving...";
+
+  const formData = new FormData(form);
+
+  try {
+    const res = await fetch(API_BASE + "/api/save", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      output.textContent = "❌ " + (data.error || "Error");
+      return;
+    }
+
+    output.textContent =
+      "✅ Saved Successfully\n" +
+      "ID: " + data.id + "\n" +
+      "Created At: " + data.created_at;
+
+    form.reset();
+  } catch (err) {
+    output.textContent = "❌ Network error";
+  }
+});
+
+/* ==========================
+   Init
+========================== */
+loadSchema();
+</script>
+
+</body>
+</html>
