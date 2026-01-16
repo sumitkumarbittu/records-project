@@ -1,6 +1,7 @@
 import express from "express";
 import multer from "multer";
 import pkg from "pg";
+import cors from "cors";
 const { Pool } = pkg;
 
 // Configure multer with file size limits
@@ -11,6 +12,7 @@ const upload = multer({
 });
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 const TABLE_NAME = "records";
