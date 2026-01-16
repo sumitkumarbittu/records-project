@@ -2,6 +2,7 @@
   "name": "records-api",
   "version": "1.0.0",
   "description": "API for records database",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
