@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: records-api
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm ci
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: records-db
+          property: connectionString
+    healthCheckPath: /health
+    autoDeploy: true
+
+databases:
+  - name: records-db
+    plan: free
+    region: oregon
+    databaseName: records
+    user: records_user
